@@ -1,8 +1,8 @@
-# Layered Payments Simulator — VISA? preset (single preset, full features)
+# Layered Payments Simulator — The Next VISA? 
 
 This is a minimalist, client side simulator UI for stress testing layered Bitcoin payment designs. 
 It keeps all the original features and removes every preset except one named VISA?. 
-Use it to show whether a VISA scale scenario can be supported by a Lightning centered, multi layer stack.
+Use it to show whether a VISA scale scenario can be supported by a Lightning centered, multi-layer stack.
 
 ## What this page does
 
