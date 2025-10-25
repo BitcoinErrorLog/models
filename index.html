@@ -3,46 +3,107 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Layered Payments Simulator – VISA? Preset</title>
+<title>Layered Payments Simulator — VISA? (single preset, full features)</title>
+<meta name="description" content="Single-preset simulator with metrics, charts, URL sharing, and JSON export.">
 <style>
-  :root { color-scheme: dark; --bg:#0b1020; --panel:#121933; --text:#e6ecff; --muted:#95a3c7; --accent:#5aa9ff; }
-  body { margin:0; font:14px/1.4 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell; background:var(--bg); color:var(--text); }
-  .wrap { max-width:980px; margin:24px auto 64px; padding:0 16px; }
-  h1 { font-size:20px; margin:0 0 16px; }
-  h2 { font-size:16px; margin:28px 0 8px; color:#cfe0ff; }
-  .panel { background:var(--panel); border:1px solid #1a2448; border-radius:12px; padding:16px; margin-bottom:14px; }
+  :root { color-scheme: dark; --bg:#0b1020; --panel:#121933; --text:#e6ecff; --muted:#95a3c7; --accent:#5aa9ff; --ok:#7CE38B; --warn:#ffd166; --bad:#ff6b6b; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.45 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu; background:var(--bg); color:var(--text); }
+  .wrap { max-width:1200px; margin:24px auto 80px; padding:0 16px; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  .sub { color:var(--muted); margin-bottom:18px; }
+  .controls { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  button { background:var(--accent); color:#001331; border:0; padding:10px 14px; border-radius:10px; font-weight:700; cursor:pointer; }
+  button.secondary { background:#22305e; color:#e6ecff; }
+  .layout { display:grid; grid-template-columns: 1.1fr 1fr; gap:16px; }
+  .panel { background:var(--panel); border:1px solid #1a2448; border-radius:12px; padding:14px; }
+  h2 { font-size:16px; margin:0 0 8px; color:#cfe0ff; }
   .row { display:grid; grid-template-columns: 1fr auto; gap:10px 12px; align-items:center; padding:8px 0; border-top:1px dashed #24305b; }
   .row:first-child { border-top:0; padding-top:0; }
   .lbl { color:#d9e5ff; }
-  .sub { color:var(--muted); font-size:12px; }
   input[type="range"] { width:360px; }
-  input[type="number"] { width:92px; padding:6px 8px; border-radius:8px; border:1px solid #2b3a6a; background:#0e1430; color:var(--text); }
-  .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
-  .btns { display:flex; gap:8px; margin:16px 0 4px; }
-  button { background:var(--accent); color:#001331; border:0; padding:10px 14px; border-radius:10px; font-weight:700; cursor:pointer; }
-  button.secondary { background:#22305e; color:#e6ecff; }
+  input[type="number"] { width:120px; padding:6px 8px; border-radius:8px; border:1px solid #2b3a6a; background:#0e1430; color:var(--text); }
+  .kpis { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-top:10px; }
+  .card { background:#0d1431; border:1px solid #253166; border-radius:12px; padding:12px; }
+  .card h3 { font-size:13px; color:#cfe0ff; margin:0 0 6px; }
+  .val { font-size:20px; font-weight:800; }
+  .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+  canvas { width:100%; height:260px; display:block; background:#0b1230; border:1px solid #22305e; border-radius:12px; }
   pre { background:#0e1430; border:1px solid #2b3a6a; border-radius:12px; padding:12px; overflow:auto; }
   .note { color:#cfe0ff; font-size:12px; margin-top:6px; }
+  .foot { color:#8ea4de; font-size:12px; margin-top:18px; }
+  a { color:#9ed0ff; }
+  @media (max-width: 980px){ .layout{ grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>VISA? preset (single-preset build)</h1>
+  <h1>Layered Payments Simulator — VISA? preset</h1>
+  <div class="sub">Same features, single preset. Tweak sliders; metrics, charts, and JSON update live. Shareable URL in the hash.</div>
 
-  <div class="btns">
+  <div class="controls">
     <button id="loadPreset">Reset to VISA?</button>
     <button class="secondary" id="exportJson">Export JSON</button>
     <button class="secondary" id="copyJson">Copy JSON</button>
+    <button class="secondary" id="shareLink">Copy Shareable Link</button>
   </div>
 
-  <div id="sections"></div>
+  <div class="layout">
+    <div id="sections"></div>
 
-  <h2>Preset JSON</h2>
-  <pre id="jsonOut" aria-live="polite"></pre>
-  <div class="note">Tip: Use Export to update the JSON, then Copy to put it on your clipboard.</div>
+    <div>
+      <div class="panel">
+        <h2>Derived metrics</h2>
+        <div class="kpis">
+          <div class="card">
+            <h3>HTLC demand / sec</h3>
+            <div id="kpiDemand" class="val">-</div>
+          </div>
+          <div class="card">
+            <h3>Total HTLC slots</h3>
+            <div id="kpiSlots" class="val">-</div>
+          </div>
+          <div class="card">
+            <h3>Slot utilization</h3>
+            <div id="kpiUtil" class="val">-</div>
+          </div>
+          <div class="card">
+            <h3>L1 backstop tx/day</h3>
+            <div id="kpiL1" class="val">-</div>
+          </div>
+          <div class="card">
+            <h3>Unsafe region?</h3>
+            <div id="kpiUnsafe" class="val">-</div>
+          </div>
+          <div class="card">
+            <h3>Notes</h3>
+            <div id="kpiNote" class="val" style="font-size:13px; font-weight:600;">-</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Charts</h2>
+        <canvas id="chart1" width="600" height="260" aria-label="HTLC demand vs capacity"></canvas>
+        <div class="note">HTLC demand (per second) vs effective slot capacity envelope.</div>
+        <br />
+        <canvas id="chart2" width="600" height="260" aria-label="L1 backlog vs enforcement window"></canvas>
+        <div class="note">Estimated L1 backlog accumulation against enforcement windows.</div>
+      </div>
+
+      <div class="panel">
+        <h2>Preset JSON</h2>
+        <pre id="jsonOut" aria-live="polite"></pre>
+        <div class="note">Tip: Export or Copy the JSON for your simulator.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">Single-preset build. To add back other presets, wire them into the same schema and URL hash state.</div>
 </div>
 
 <script>
+// ----- Schema -----
 const schema = [
   {
     title: "Population",
@@ -66,10 +127,8 @@ const schema = [
     fields: [
       ["self_ln_touch_pct","Self-LN: LN touch (%)","range",0,100,1],
       ["self_ln_aggregation_ratio","Self-LN aggregation (payments per HTLC)","range",1,200,1],
-
       ["key_layer_touch_ln_pct","Key-layer: % of payments that touch LN","range",0,100,1],
       ["key_layer_user_to_ln_aggregation_ratio","Key-layer: user→LN aggregation (payments per HTLC)","range",1,200,1],
-
       ["custodial_touch_ln_pct","Custodial: % of payments that touch LN","range",0,100,1],
       ["custodial_aggregation_ratio","Custodial: aggregation (payments per HTLC)","range",1,500,1],
     ]
@@ -109,6 +168,7 @@ const schema = [
   },
 ];
 
+// ----- Single preset -----
 const presetVisa = {
   id: "visa",
   name: "VISA?",
@@ -152,8 +212,34 @@ const presetVisa = {
   }
 };
 
+// ----- State, UI, and helpers -----
 const $sections = document.getElementById("sections");
-const state = structuredClone(presetVisa.values);
+const $jsonOut = document.getElementById("jsonOut");
+const $kpiDemand = document.getElementById("kpiDemand");
+const $kpiSlots = document.getElementById("kpiSlots");
+const $kpiUtil = document.getElementById("kpiUtil");
+const $kpiL1 = document.getElementById("kpiL1");
+const $kpiUnsafe = document.getElementById("kpiUnsafe");
+const $kpiNote = document.getElementById("kpiNote");
+
+let state = structuredClone(presetVisa.values);
+
+// URL hash encoding/decoding
+function encodeState(obj){ return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); }
+function decodeState(s){ try { return JSON.parse(decodeURIComponent(escape(atob(s)))); } catch { return null; } }
+
+function loadFromHash(){
+  if (location.hash && location.hash.length > 2){
+    const data = decodeState(location.hash.slice(1));
+    if (data && typeof data === 'object'){ state = Object.assign({}, state, data); }
+  }
+}
+loadFromHash();
+
+function updateHash(){
+  const s = encodeState(state);
+  history.replaceState(null, "", "#" + s);
+}
 
 function makeRow(key, label, type, min, max, step) {
   const row = document.createElement("div");
@@ -177,7 +263,6 @@ function makeRow(key, label, type, min, max, step) {
   right.appendChild(range);
   right.appendChild(num);
 
-  // two-way bind
   const sync = (from, to) => {
     to.value = from.value;
     state[key] = Number(from.value);
@@ -185,12 +270,8 @@ function makeRow(key, label, type, min, max, step) {
   };
   range.addEventListener("input", () => sync(range, num));
   num.addEventListener("input", () => {
-    // clamp
     const v = Math.max(min, Math.min(max, Number(num.value)));
-    num.value = v;
-    range.value = v;
-    state[key] = v;
-    scheduleRender();
+    num.value = v; range.value = v; state[key] = v; scheduleRender();
   });
 
   row.appendChild(left);
@@ -215,35 +296,176 @@ function buildUI() {
 }
 buildUI();
 
-const $out = document.getElementById("jsonOut");
+// ----- Calculations -----
+// These are intentionally simple but expressive; align with your sim math as needed.
+function calcDerived(s){
+  const users = s.users_millions * 1e6;
+  const activeUsers = users * (s.active_users_daily_pct/100);
+  const paymentsPerDay = activeUsers * s.payments_per_active_user_per_day;
+
+  // Map to LN-touching payments and aggregation into HTLCs
+  const selfUsers = users * (s.share_self_ln_pct/100);
+  const keyUsers = users * (s.share_key_layer_pct/100);
+  const custUsers = users * (s.share_custodial_pct/100);
+
+  const selfPayments = paymentsPerDay * (selfUsers/users) * (s.self_ln_touch_pct/100);
+  const keyPayments  = paymentsPerDay * (keyUsers/users)  * (s.key_layer_touch_ln_pct/100);
+  const custPayments = paymentsPerDay * (custUsers/users) * (s.custodial_touch_ln_pct/100);
+
+  const htlcSelf = selfPayments / Math.max(1, s.self_ln_aggregation_ratio);
+  const htlcKey  = keyPayments  / Math.max(1, s.key_layer_user_to_ln_aggregation_ratio);
+  const htlcCust = custPayments / Math.max(1, s.custodial_aggregation_ratio);
+
+  const htlcPerDay = htlcSelf + htlcKey + htlcCust;
+  const htlcPerSec = htlcPerDay / 86400;
+
+  // Capacity envelope
+  const routers = s.network_routers_count;
+  const channelsPerRouter = s.channels_per_router_avg;
+  const slotsPerChannel = s.htlc_slots_per_channel * (s.usable_slot_fraction_pct/100);
+  const totalSlots = Math.floor(routers * channelsPerRouter * slotsPerChannel);
+  const avgInFlightSec = Math.max(1, s.avg_inflight_seconds);
+  const slotThroughputPerSec = totalSlots / avgInFlightSec; // rough throughput
+
+  // Utilization
+  const util = (htlcPerSec / slotThroughputPerSec) || 0;
+
+  // L1 backstop
+  const keyUsersNeedingBackstop = keyUsers * (s.key_layer_backstop_users_pct/100);
+  const txForKeyBackstopPerDay = keyUsersNeedingBackstop / Math.max(1, s.key_layer_backstop_users_per_tx);
+  const forcedClosures = (selfUsers * (s.self_ln_forced_closure_pct/100)) / Math.max(1, s.user_channels_per_self_ln_user);
+  const lnCloseTxPerDay = forcedClosures * s.avg_tx_per_ln_channel_closure; // upper-boundish
+  const l1LoadPerDay = txForKeyBackstopPerDay + lnCloseTxPerDay;
+
+  // Compare to L1 capacity and enforcement windows
+  const l1Capacity = s.l1_capacity_tx_per_day;
+  const backlogPerDay = Math.max(0, l1LoadPerDay - l1Capacity);
+  const daysToDrainIfNoNew = backlogPerDay > 0 ? (l1LoadPerDay / backlogPerDay) : 0; // heuristic
+  const unsafeLN = backlogPerDay > 0 && (backlogPerDay * s.self_ln_enforcement_window_days) > l1Capacity * s.self_ln_enforcement_window_days;
+  const unsafeKey = backlogPerDay > 0 && (backlogPerDay * s.key_layer_backstop_window_days) > l1Capacity * s.key_layer_backstop_window_days;
+  const unsafe = unsafeLN || unsafeKey;
+
+  return {
+    users, activeUsers, paymentsPerDay,
+    htlcPerDay, htlcPerSec, totalSlots, slotThroughputPerSec, util,
+    l1LoadPerDay, l1Capacity, backlogPerDay, daysToDrainIfNoNew,
+    unsafeLN, unsafeKey, unsafe
+  };
+}
+
+// ----- Charts (vanilla canvas) -----
+const $c1 = document.getElementById("chart1");
+const $c2 = document.getElementById("chart2");
+const ctx1 = $c1.getContext("2d");
+const ctx2 = $c2.getContext("2d");
+
+function drawChart1(derived){
+  const W = $c1.width, H = $c1.height;
+  ctx1.clearRect(0,0,W,H);
+  // Axes
+  ctx1.strokeStyle = "#345"; ctx1.lineWidth = 1;
+  ctx1.strokeRect(40,20,W-60,H-60);
+  // Data
+  const maxY = Math.max(derived.htlcPerSec*1.4, derived.slotThroughputPerSec*1.4, 1);
+  const demandY = H-40 - (derived.htlcPerSec / maxY) * (H-60);
+  const capY = H-40 - (derived.slotThroughputPerSec / maxY) * (H-60);
+
+  // Demand line
+  ctx1.strokeStyle = "#9ed0ff"; ctx1.lineWidth = 3;
+  ctx1.beginPath(); ctx1.moveTo(50, demandY); ctx1.lineTo(W-30, demandY); ctx1.stroke();
+  // Capacity line
+  ctx1.strokeStyle = "#7CE38B"; ctx1.lineWidth = 3;
+  ctx1.beginPath(); ctx1.moveTo(50, capY); ctx1.lineTo(W-30, capY); ctx1.stroke();
+
+  // Labels
+  ctx1.fillStyle = "#cfe0ff";
+  ctx1.fillText("HTLC demand/sec ≈ " + derived.htlcPerSec.toFixed(2), 50, demandY-8);
+  ctx1.fillText("Capacity/sec ≈ " + derived.slotThroughputPerSec.toFixed(2), 50, capY-8);
+}
+
+function drawChart2(derived, s){
+  const W = $c2.width, H = $c2.height;
+  ctx2.clearRect(0,0,W,H);
+  ctx2.strokeStyle = "#345"; ctx2.lineWidth = 1;
+  ctx2.strokeRect(40,20,W-60,H-60);
+  // Simulate backlog over max of windows
+  const days = Math.max(s.self_ln_enforcement_window_days, s.key_layer_backstop_window_days);
+  const points = days;
+  const cap = derived.l1Capacity;
+  let backlog = 0;
+  const xs = [], ys = [];
+  for (let d=0; d<=points; d++){
+    // per-day load
+    const load = derived.l1LoadPerDay;
+    backlog = Math.max(0, backlog + load - cap);
+    xs.push(d); ys.push(backlog);
+  }
+  const maxY = Math.max(...ys, 1);
+  // Line
+  ctx2.strokeStyle = "#ffd166"; ctx2.lineWidth = 2;
+  ctx2.beginPath();
+  for (let i=0;i<xs.length;i++){
+    const x = 40 + (i/points)*(W-60);
+    const y = H-40 - (ys[i]/maxY)*(H-60);
+    if (i===0) ctx2.moveTo(x,y); else ctx2.lineTo(x,y);
+  }
+  ctx2.stroke();
+  ctx2.fillStyle = "#cfe0ff";
+  ctx2.fillText("Backlog after " + days + " days: " + Math.round(ys[ys.length-1]).toLocaleString() + " tx", 50, 32);
+}
+
+// ----- Rendering -----
 function renderJSON() {
   const payload = { id: "visa", name: "VISA?", values: { ...state } };
-  $out.textContent = JSON.stringify(payload, null, 2);
+  $jsonOut.textContent = JSON.stringify(payload, null, 2);
+}
+function renderKPIs(d){
+  const fmt = n => (Math.abs(n) >= 1000 ? Math.round(n).toLocaleString() : n.toFixed(2));
+  $kpiDemand.textContent = fmt(d.htlcPerSec);
+  $kpiSlots.textContent = Math.round(d.totalSlots).toLocaleString();
+  const utilPct = (d.util*100);
+  $kpiUtil.textContent = utilPct.toFixed(1) + "%";
+  $kpiUtil.className = "val " + (utilPct<60 ? "ok" : utilPct<90 ? "warn" : "bad");
+  $kpiL1.textContent = Math.round(d.l1LoadPerDay).toLocaleString();
+  $kpiUnsafe.textContent = d.unsafe ? "YES" : "no";
+  $kpiUnsafe.className = "val " + (d.unsafe ? "bad" : "ok");
+  $kpiNote.textContent = d.unsafeLN ? "LN window at risk" : d.unsafeKey ? "Key-layer window at risk" : "Within windows";
+}
+function renderAll(){
+  const d = calcDerived(state);
+  renderJSON();
+  renderKPIs(d);
+  drawChart1(d);
+  drawChart2(d, state);
+  updateHash();
 }
 let raf = 0;
-function scheduleRender(){ cancelAnimationFrame(raf); raf = requestAnimationFrame(renderJSON); }
-renderJSON();
+function scheduleRender(){ cancelAnimationFrame(raf); raf = requestAnimationFrame(renderAll); }
+renderAll();
 
+// ----- Buttons -----
 document.getElementById("loadPreset").onclick = () => {
-  Object.assign(state, presetVisa.values);
+  state = structuredClone(presetVisa.values);
   buildUI();
-  renderJSON();
+  renderAll();
 };
 
 document.getElementById("exportJson").onclick = renderJSON;
 
 document.getElementById("copyJson").onclick = async () => {
-  try {
-    await navigator.clipboard.writeText($out.textContent);
-    alert("Preset JSON copied to clipboard.");
-  } catch {
-    // fallback
-    const ta = document.createElement("textarea");
-    ta.value = $out.textContent;
-    document.body.appendChild(ta);
-    ta.select(); document.execCommand("copy");
-    ta.remove();
+  try { await navigator.clipboard.writeText($jsonOut.textContent); alert("Preset JSON copied."); }
+  catch {
+    const ta = document.createElement("textarea"); ta.value = $jsonOut.textContent;
+    document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
     alert("Copied via fallback.");
+  }
+};
+
+document.getElementById("shareLink").onclick = async () => {
+  try {
+    await navigator.clipboard.writeText(location.href);
+    alert("Shareable URL copied.");
+  } catch {
   }
 };
 </script>
