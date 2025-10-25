@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Layered Payments Simulator – VISA? Preset</title>
+<style>
+  :root { color-scheme: dark; --bg:#0b1020; --panel:#121933; --text:#e6ecff; --muted:#95a3c7; --accent:#5aa9ff; }
+  body { margin:0; font:14px/1.4 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell; background:var(--bg); color:var(--text); }
+  .wrap { max-width:980px; margin:24px auto 64px; padding:0 16px; }
+  h1 { font-size:20px; margin:0 0 16px; }
+  h2 { font-size:16px; margin:28px 0 8px; color:#cfe0ff; }
+  .panel { background:var(--panel); border:1px solid #1a2448; border-radius:12px; padding:16px; margin-bottom:14px; }
+  .row { display:grid; grid-template-columns: 1fr auto; gap:10px 12px; align-items:center; padding:8px 0; border-top:1px dashed #24305b; }
+  .row:first-child { border-top:0; padding-top:0; }
+  .lbl { color:#d9e5ff; }
+  .sub { color:var(--muted); font-size:12px; }
+  input[type="range"] { width:360px; }
+  input[type="number"] { width:92px; padding:6px 8px; border-radius:8px; border:1px solid #2b3a6a; background:#0e1430; color:var(--text); }
+  .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+  .btns { display:flex; gap:8px; margin:16px 0 4px; }
+  button { background:var(--accent); color:#001331; border:0; padding:10px 14px; border-radius:10px; font-weight:700; cursor:pointer; }
+  button.secondary { background:#22305e; color:#e6ecff; }
+  pre { background:#0e1430; border:1px solid #2b3a6a; border-radius:12px; padding:12px; overflow:auto; }
+  .note { color:#cfe0ff; font-size:12px; margin-top:6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>VISA? preset (single-preset build)</h1>
+
+  <div class="btns">
+    <button id="loadPreset">Reset to VISA?</button>
+    <button class="secondary" id="exportJson">Export JSON</button>
+    <button class="secondary" id="copyJson">Copy JSON</button>
+  </div>
+
+  <div id="sections"></div>
+
+  <h2>Preset JSON</h2>
+  <pre id="jsonOut" aria-live="polite"></pre>
+  <div class="note">Tip: Use Export to update the JSON, then Copy to put it on your clipboard.</div>
+</div>
+
+<script>
+const schema = [
+  {
+    title: "Population",
+    fields: [
+      ["users_millions","Users (millions)","range",0,500,1],
+      ["share_self_ln_pct","Self-custodial LN (%)","range",0,100,1],
+      ["share_key_layer_pct","Key-holding layer (%)","range",0,100,1],
+      ["share_custodial_pct","Pure custodial (%)","range",0,100,1],
+    ]
+  },
+  {
+    title: "Activity",
+    fields: [
+      ["payments_per_active_user_per_day","Payments per active user per day","range",0,20,0.1],
+      ["active_users_daily_pct","% of users active daily","range",0,100,1],
+    ]
+  },
+  {
+    title: "LN Demand Mapping",
+    subtitle: "Only the portion of payments that touch LN create HTLC demand.",
+    fields: [
+      ["self_ln_touch_pct","Self-LN: LN touch (%)","range",0,100,1],
+      ["self_ln_aggregation_ratio","Self-LN aggregation (payments per HTLC)","range",1,200,1],
+
+      ["key_layer_touch_ln_pct","Key-layer: % of payments that touch LN","range",0,100,1],
+      ["key_layer_user_to_ln_aggregation_ratio","Key-layer: user→LN aggregation (payments per HTLC)","range",1,200,1],
+
+      ["custodial_touch_ln_pct","Custodial: % of payments that touch LN","range",0,100,1],
+      ["custodial_aggregation_ratio","Custodial: aggregation (payments per HTLC)","range",1,500,1],
+    ]
+  },
+  {
+    title: "LN Graph Envelope",
+    fields: [
+      ["avg_path_hops","Avg. path length (hops)","range",1,12,1],
+      ["mpp_splits_per_payment","MPP splits per payment","range",1,32,1],
+      ["avg_inflight_seconds","Avg. in-flight duration (sec)","range",1,600,1],
+      ["network_routers_count","Network routers (pro LSPs)","range",1,5000,1],
+      ["channels_per_router_avg","Channels per router (avg)","range",1,2000,1],
+      ["htlc_slots_per_channel","HTLC slots per channel","range",1,483,1],
+      ["usable_slot_fraction_pct","Usable slot fraction (safety, %)","range",1,100,1],
+      ["min_htlc_sats","Min-HTLC (sats)","range",1,100000,1],
+    ]
+  },
+  {
+    title: "Enforcement / Shock",
+    fields: [
+      ["self_ln_forced_closure_pct","Self-LN: % channels forced to close","range",0,100,1],
+      ["key_layer_backstop_users_per_tx","Key-layer: L1 backstop users per tx","range",1,10000,1],
+      ["key_layer_backstop_users_pct","Key-layer: % of users needing backstop","range",0,100,1],
+      ["l1_capacity_tx_per_day","L1 capacity (tx/day)","range",1000,1000000,1000],
+      ["avg_tx_per_ln_channel_closure","Avg. tx per LN channel closure","range",1,10,1],
+      ["user_channels_per_self_ln_user","User channels per self-LN user","range",1,10,1],
+    ]
+  },
+  {
+    title: "Enforcement Windows",
+    subtitle: "Windows are time to get on-chain in adversarial conditions.",
+    fields: [
+      ["self_ln_enforcement_window_days","Self-LN enforcement window (days)","range",1,30,1],
+      ["key_layer_backstop_window_days","Key-layer backstop window (days)","range",1,90,1],
+      ["jamming_target_slot_pct","Jamming target (percent of slots to occupy)","range",0,100,1],
+    ]
+  },
+];
+
+const presetVisa = {
+  id: "visa",
+  name: "VISA?",
+  values: {
+    users_millions: 100,
+    share_self_ln_pct: 33,
+    share_key_layer_pct: 25,
+    share_custodial_pct: 42,
+
+    payments_per_active_user_per_day: 1.5,
+    active_users_daily_pct: 60,
+
+    self_ln_touch_pct: 100,
+    self_ln_aggregation_ratio: 1,
+
+    key_layer_touch_ln_pct: 80,
+    key_layer_user_to_ln_aggregation_ratio: 8,
+
+    custodial_touch_ln_pct: 80,
+    custodial_aggregation_ratio: 200,
+
+    avg_path_hops: 4,
+    mpp_splits_per_payment: 6,
+    avg_inflight_seconds: 60,
+    network_routers_count: 300,
+    channels_per_router_avg: 150,
+    htlc_slots_per_channel: 211,
+    usable_slot_fraction_pct: 50,
+    min_htlc_sats: 1000,
+
+    self_ln_forced_closure_pct: 5,
+    key_layer_backstop_users_per_tx: 200,
+    key_layer_backstop_users_pct: 5,
+    l1_capacity_tx_per_day: 150000,
+    avg_tx_per_ln_channel_closure: 4,
+    user_channels_per_self_ln_user: 1,
+
+    self_ln_enforcement_window_days: 14,
+    key_layer_backstop_window_days: 30,
+    jamming_target_slot_pct: 50
+  }
+};
+
+const $sections = document.getElementById("sections");
+const state = structuredClone(presetVisa.values);
+
+function makeRow(key, label, type, min, max, step) {
+  const row = document.createElement("div");
+  row.className = "row";
+  const left = document.createElement("div");
+  const right = document.createElement("div");
+
+  const lbl = document.createElement("div");
+  lbl.className = "lbl";
+  lbl.textContent = label;
+  left.appendChild(lbl);
+
+  const range = document.createElement("input");
+  range.type = type;
+  range.min = min; range.max = max; range.step = step;
+  range.value = state[key];
+
+  const num = document.createElement("input");
+  num.type = "number"; num.step = step; num.min = min; num.max = max; num.value = state[key];
+
+  right.appendChild(range);
+  right.appendChild(num);
+
+  // two-way bind
+  const sync = (from, to) => {
+    to.value = from.value;
+    state[key] = Number(from.value);
+    scheduleRender();
+  };
+  range.addEventListener("input", () => sync(range, num));
+  num.addEventListener("input", () => {
+    // clamp
+    const v = Math.max(min, Math.min(max, Number(num.value)));
+    num.value = v;
+    range.value = v;
+    state[key] = v;
+    scheduleRender();
+  });
+
+  row.appendChild(left);
+  row.appendChild(right);
+  return row;
+}
+
+function buildUI() {
+  $sections.innerHTML = "";
+  for (const block of schema) {
+    const panel = document.createElement("section");
+    panel.className = "panel";
+    const h = document.createElement("h2"); h.textContent = block.title; panel.appendChild(h);
+    if (block.subtitle) {
+      const p = document.createElement("div"); p.className = "sub"; p.textContent = block.subtitle; panel.appendChild(p);
+    }
+    for (const f of block.fields) {
+      panel.appendChild(makeRow(...f));
+    }
+    $sections.appendChild(panel);
+  }
+}
+buildUI();
+
+const $out = document.getElementById("jsonOut");
+function renderJSON() {
+  const payload = { id: "visa", name: "VISA?", values: { ...state } };
+  $out.textContent = JSON.stringify(payload, null, 2);
+}
+let raf = 0;
+function scheduleRender(){ cancelAnimationFrame(raf); raf = requestAnimationFrame(renderJSON); }
+renderJSON();
+
+document.getElementById("loadPreset").onclick = () => {
+  Object.assign(state, presetVisa.values);
+  buildUI();
+  renderJSON();
+};
+
+document.getElementById("exportJson").onclick = renderJSON;
+
+document.getElementById("copyJson").onclick = async () => {
+  try {
+    await navigator.clipboard.writeText($out.textContent);
+    alert("Preset JSON copied to clipboard.");
+  } catch {
+    // fallback
+    const ta = document.createElement("textarea");
+    ta.value = $out.textContent;
+    document.body.appendChild(ta);
+    ta.select(); document.execCommand("copy");
+    ta.remove();
+    alert("Copied via fallback.");
+  }
+};
+</script>
+</body>
+</html>
