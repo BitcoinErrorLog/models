@@ -4,6 +4,8 @@ Interactive web UI for experimenting with the Law of Conservation of Blockspace 
 `cred10.tex`. It exposes the key variables—efficiency coefficient rho, usable window `W'`, and
 per-user enforcement weight `e`—and visualizes the lower bound on simultaneous unilateral exits.
 
+<img width="1350" height="1129" alt="image" src="https://github.com/user-attachments/assets/46021af6-72fb-4909-a459-6a73e07411a3" />
+
 ## Features
 
 - Preset scenarios mirroring the paper (Retail Panic, Quiet Exit, Mixed Economy, Institutional,
