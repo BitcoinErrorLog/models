@@ -4,8 +4,6 @@ Interactive web UI for experimenting with the Law of Conservation of Blockspace 
 `cred10.tex`. It exposes the key variables—efficiency coefficient rho, usable window `W'`, and
 per-user enforcement weight `e`—and visualizes the lower bound on simultaneous unilateral exits.
 
-<img width="1350" height="1129" alt="image" src="https://github.com/user-attachments/assets/46021af6-72fb-4909-a459-6a73e07411a3" />
-
 ## Features
 
 - Preset scenarios mirroring the paper (Retail Panic, Quiet Exit, Mixed Economy, Institutional,
@@ -66,3 +64,17 @@ toy should be interpreted as an optimistic (necessary) bound.
 
 - **Share current setup** copies a permalink with the full scenario embedded in the query string.
 - **Download JSON** saves `{ scenario, metrics }` for reproducibility or offline calculations.
+
+## Deploying to GitHub Pages
+
+This repo ships with two options:
+
+1. **GitHub Actions (recommended)**  
+   - Push to `main`/`master` and the workflow in `.github/workflows/deploy.yml` will run `npm ci`,
+     `npm run test -- --run`, `npm run build`, and publish `dist/` to Pages automatically.
+   - Ensure Pages is enabled in your repo settings (`GitHub Pages → Source → GitHub Actions`).
+
+2. **Manual CLI publish**  
+   - `npm run deploy`  
+     This runs `vite build` (respecting `VITE_BASE`) and uploads `dist/` via `gh-pages`.
+   - Set `VITE_BASE` when needed: `VITE_BASE=/my-repo npm run deploy`.
