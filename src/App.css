@@ -1,0 +1,272 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.lede {
+  color: #475569;
+  max-width: 720px;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 1.75rem;
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.panel-header h2 {
+  margin: 0;
+}
+
+.panel-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.ghost {
+  background: transparent;
+  border: 1px solid #cbd5f5;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.ghost:hover {
+  border-color: #94a3b8;
+}
+
+.share-status {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #16a34a;
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.preset {
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid #cbd5f5;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.preset.disabled {
+  cursor: default;
+  background: #e2e8f0;
+}
+
+.preset.active {
+  background: #1d4ed8;
+  color: #fff;
+  border-color: #1d4ed8;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.control-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.control input[type='number'],
+.control input[type='range'] {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #cbd5f5;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.control input[type='range'] {
+  padding: 0;
+}
+
+.control small {
+  text-transform: none;
+  letter-spacing: normal;
+  color: #94a3b8;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.metric-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem;
+  background: #f8fafc;
+}
+
+.metric-card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metric-value {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.metric-hint {
+  margin: 0.25rem 0 0;
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.75rem 0.5rem;
+}
+
+th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+}
+
+tbody tr {
+  border-top: 1px solid #e2e8f0;
+}
+
+.sparkline {
+  width: 100%;
+  height: auto;
+  background: #0f172a;
+  border-radius: 16px;
+}
+
+.sparkline-label {
+  fill: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+}
+
+.chart-caption {
+  margin: 0;
+  color: #475569;
+}
+
+.scenario-note {
+  margin: 0;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.docs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.docs-grid article {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem;
+  background: #fdfdfd;
+}
+
+.docs-grid h3 {
+  margin-top: 0;
+  margin-bottom: 0.4rem;
+  font-size: 0.95rem;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.docs-grid ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #475569;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+@media (max-width: 640px) {
+  .panel-header {
+    flex-direction: column;
+  }
+
+  .control-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
